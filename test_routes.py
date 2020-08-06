@@ -15,11 +15,11 @@ class GraphInitializationTest(unittest.TestCase):
 
     def test_failed_csv_parse(self):
         with self.assertRaises(ValueError):
-            Routes.load_routes('test_csv_files/wrong_distance_format.csv')
+            Routes.load_routes('test_csv_files/wrong_duration_format.csv')
 
-    def test_failed_illogical_route_distances(self):
+    def test_failed_illogical_route_durations(self):
         with self.assertRaises(InvalidRouteError):
-            Routes.load_routes('test_csv_files/negative_distance.csv')
+            Routes.load_routes('test_csv_files/negative_duration.csv')
         with self.assertRaises(InvalidRouteError):
             Routes.load_routes('test_csv_files/impossible_cycle.csv')
         with self.assertRaises(InvalidRouteError):
@@ -31,13 +31,18 @@ class ShortestPathTest(unittest.TestCase):
         routes = Routes.load_routes('test_csv_files/base_case.csv')
         res = routes.shortest_path('A', 'A')
         self.assertEqual(res.path, ['A'])
-        self.assertEqual(res.dist, 0)
+        self.assertEqual(res.duration, 0)
 
     def test_simple_shortest_path(self):
-        routes = Routes.load_routes('test_csv_files/base_case.csv')
+        routes = Routes.load_routes('test_csv_files/simple_path.csv')
         res = routes.shortest_path('A', 'T')
         self.assertEqual(res.path, ['A', 'B', 'T'])
-        self.assertEqual(res.dist, 2)
+        self.assertEqual(res.duration, 2)
+
+    def test_no_path(self):
+        routes = Routes.load_routes('test_csv_files/simple_path.csv')
+        res = routes.shortest_path('T', 'A')
+        assert res is None
 
 
 if __name__ == '__main__':

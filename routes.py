@@ -2,7 +2,7 @@ from __future__ import annotations
 import csv
 from dataclasses import dataclass
 from collections import defaultdict
-from typing import List
+from typing import List, Optional
 
 
 # Dynamic attributes can trigger pylint. I'm disabling it here just for convenience.
@@ -21,7 +21,7 @@ class InvalidRouteError(Exception):
 class Route:
     src: str
     dest: str
-    dist: int
+    duration: int
 
 
 @dataclass
@@ -32,24 +32,24 @@ class Routes:
             # Malformed CSV errors causing index range errors and invalid int literal erros will panic with the default trace
             src = raw_route[0].upper()
             dest = raw_route[1].upper()
-            dist = int(raw_route[2])
+            duration = int(raw_route[2])
             unique_nodes = src == dest
 
             # Ideally these checks should be a part of Route and error handling/printing should have a more robust mechanism.
             # Here for now because of easy access to index and malformed data
-            if unique_nodes and dist != 0:
+            if unique_nodes and duration != 0:
                 raise InvalidRouteError(
-                    "Distance must be 0 if source and destination are the same.", idx+1, raw_route)
+                    "Duration must be 0 if source and destination are the same.", idx+1, raw_route)
 
-            if dist < 0:
+            if duration < 0:
                 raise InvalidRouteError(
-                    "Distance must be either 0 or a postive integer.", idx+1, raw_route)
+                    "Duration must be either 0 or a postive integer.", idx+1, raw_route)
 
-            if not unique_nodes and dist == 0:
+            if not unique_nodes and duration == 0:
                 raise InvalidRouteError(
-                    "Distance between two unique nodes must be greater than 0", idx+1, raw_route)
+                    "Duration between two unique nodes must be greater than 0", idx+1, raw_route)
 
-            route = Route(src, dest, dist)
+            route = Route(src, dest, duration)
             self.graph.add_route(route)
 
     @staticmethod
@@ -64,9 +64,27 @@ class Routes:
 class RouteGraph:
     def __init__(self):
         self.edges = defaultdict(list)
-        self.distances = {}
+        self.durations = {}
 
     def add_route(self, r: Route):
         # Assumption is these are directed edges. The document mentioned a "starting station" and "ending station"
         self.edges[r.src].append(r.dest)
-        self.distances[(r.src, r.dest)] = r.dist
+        self.durations[(r.src, r.dest)] = r.duration
+    
+    def shortest_path(self, start, end) -> Optional[Result]:
+        pass
+
+@dataclass(frozen=True)
+class Result:
+    path: List[str]
+    duration: int
+
+
+    def __str__(self):
+        stops = 0
+        path_len = len(self.path)
+
+        if path_len >= 1:
+            stops = path_len
+        
+        return "Result: {} stops, {} minutes".format(stops, self.duration)
