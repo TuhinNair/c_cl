@@ -16,11 +16,10 @@ class Route:
 @dataclass
 class Routes:
     def __init__(self, raw_routes: List[List[str]]):
-        routes: List[Route] = []
+        self.routes: List[Route] = []
         for raw_route in raw_routes:
                 route = Route(raw_route[0], raw_route[1], int(raw_route[2]))
-                routes.append(route)
-        object.__setattr__(self, 'routes', routes)
+                self.routes.append(route)
     
     @staticmethod
     def load_routes(filename: str = 'routes.csv') -> Routes:
