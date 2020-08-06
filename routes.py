@@ -15,9 +15,8 @@ class InvalidRouteError(Exception):
             message, line_idx, bad_data)
         super().__init__(self.message)
 
+
 # Perhaps this can be refactored out but it's easy immutability
-
-
 @dataclass(frozen=True)
 class Route:
     src: str
@@ -36,7 +35,7 @@ class Routes:
             dist = int(raw_route[2])
             unique_nodes = src == dest
 
-            # Ideally these checks should be a part of the Route class and error handling/printing should have a more robust mechanism. 
+            # Ideally these checks should be a part of Route and error handling/printing should have a more robust mechanism.
             # Here for now because of easy access to index and malformed data
             if unique_nodes and dist != 0:
                 raise InvalidRouteError(
