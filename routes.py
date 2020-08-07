@@ -53,9 +53,6 @@ class Routes:
             route = Route(src, dest, duration)
             self.graph.add_route(route)
 
-    def shortest_path(self, start: str, end: str) -> Optional[Result]:
-        return self.graph._shortest_path(start, end)
-
     @staticmethod
     def load_routes(filename: str = 'routes.csv') -> Routes:
         all_routes: Routes
@@ -75,7 +72,7 @@ class RouteGraph:
         self.edges[r.src].append(r.dest)
         self.durations[(r.src, r.dest)] = r.duration
 
-    def _shortest_path(self, start, end) -> Optional[Result]:
+    def shortest_path(self, start, end) -> Optional[Result]:
         if start not in self.edges.keys():
             return None
         if start == end:
@@ -87,27 +84,23 @@ class RouteGraph:
         last_edge = {}
 
         while unvisited:
-            print("\nUnvisited: {}".format(unvisited))
-            leftover_edges = {k:v for (k,v) in duration_from_start.items() if k in unvisited}
+            leftover_edges = {
+                k: v for (k, v) in duration_from_start.items() if k in unvisited}
+            if not leftover_edges:
+                break
             current_shortest = min(leftover_edges, key=leftover_edges.get)
-            print("Current Shortet: {}\n".format(current_shortest))
             for neighbor in self.edges[current_shortest]:
-                print("Checking neighbour: {}\n".format(neighbor))
                 if neighbor not in visited:
                     local_duration = self.durations[(
                         current_shortest, neighbor)]
-                    print("local duration from {} to {} is {}\n".format(current_shortest, neighbor, local_duration))
                     global_duration = duration_from_start[current_shortest] + \
                         local_duration
                     if neighbor not in duration_from_start:
                         duration_from_start[neighbor] = global_duration
                         last_edge[neighbor] = current_shortest
-                        print("Adding DFS for edge {} with duration {}\n".format(neighbor, global_duration))
                     elif duration_from_start[neighbor] > global_duration:
                         duration_from_start[neighbor] = global_duration
                         last_edge[neighbor] = current_shortest
-                        print("Updating DFS for edge {} with duration {}\n".format(neighbor, global_duration))
-            print("Duration from start: {}\n".format(duration_from_start))
             unvisited.remove(current_shortest)
             visited.append(current_shortest)
 

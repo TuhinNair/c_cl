@@ -29,21 +29,36 @@ class GraphInitializationTest(unittest.TestCase):
 class ShortestPathTest(unittest.TestCase):
     def test_shortest_path_base_case(self):
         routes = Routes.load_routes('test_csv_files/base_case.csv')
-        res = routes.shortest_path('A', 'A')
+        res = routes.graph.shortest_path('A', 'A')
         self.assertEqual(res.path, ['A'])
         self.assertEqual(res.duration, 0)
 
     def test_simple_shortest_path(self):
         routes = Routes.load_routes('test_csv_files/simple_path.csv')
-        res = routes.shortest_path('A', 'T')
+        res = routes.graph.shortest_path('A', 'T')
         self.assertEqual(res.path, ['A', 'B', 'T'])
         self.assertEqual(res.duration, 2)
 
-    def test_no_path(self):
+    def test_use_end_node_as_start(self):
         routes = Routes.load_routes('test_csv_files/simple_path.csv')
-        res = routes.shortest_path('T', 'A')
+        res = routes.graph.shortest_path('T', 'A')
         assert res is None
 
+    def test_no_path(self):
+        routes = Routes.load_routes('test_csv_files/simple_path.csv')
+        res = routes.graph.shortest_path('T', 'A')
+        assert res is None
+    
+    def test_competing_routes(self):
+        routes = Routes.load_routes('test_csv_files/simple_path_1.csv')
+        res = routes.graph.shortest_path('A', 'Z')
+        self.assertEqual(res.path, ['A', 'B', 'Z'])
+        self.assertEqual(res.duration, 2)
+
+    def test_unreachable_node(self):
+        routes = Routes.load_routes('test_csv_files/unreachable.csv')
+        res = routes.graph.shortest_path('A', 'R')
+        assert res is None
 
 if __name__ == '__main__':
     unittest.main()
