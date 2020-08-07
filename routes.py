@@ -3,6 +3,7 @@ import csv
 from dataclasses import dataclass
 from collections import defaultdict
 from typing import List, Optional
+import functools
 
 
 # Dynamic attributes can trigger pylint. I'm disabling it here just for convenience.
@@ -52,6 +53,9 @@ class Routes:
             route = Route(src, dest, duration)
             self.graph.add_route(route)
 
+    def shortest_path(self, start: str, end: str) -> Optional[Result]:
+        return self.graph._shortest_path(start, end)
+
     @staticmethod
     def load_routes(filename: str = 'routes.csv') -> Routes:
         all_routes: Routes
@@ -70,15 +74,61 @@ class RouteGraph:
         # Assumption is these are directed edges. The document mentioned a "starting station" and "ending station"
         self.edges[r.src].append(r.dest)
         self.durations[(r.src, r.dest)] = r.duration
-    
-    def shortest_path(self, start, end) -> Optional[Result]:
-        pass
+
+    def _shortest_path(self, start, end) -> Optional[Result]:
+        if start not in self.edges.keys():
+            return None
+        if start == end:
+            return Result([start], 0)
+        unvisited = [*self.edges]
+        visited = []
+        duration_from_start = {}
+        duration_from_start[start] = 0
+        last_edge = {}
+
+        while unvisited:
+            print("\nUnvisited: {}".format(unvisited))
+            leftover_edges = {k:v for (k,v) in duration_from_start.items() if k in unvisited}
+            current_shortest = min(leftover_edges, key=leftover_edges.get)
+            print("Current Shortet: {}\n".format(current_shortest))
+            for neighbor in self.edges[current_shortest]:
+                print("Checking neighbour: {}\n".format(neighbor))
+                if neighbor not in visited:
+                    local_duration = self.durations[(
+                        current_shortest, neighbor)]
+                    print("local duration from {} to {} is {}\n".format(current_shortest, neighbor, local_duration))
+                    global_duration = duration_from_start[current_shortest] + \
+                        local_duration
+                    if neighbor not in duration_from_start:
+                        duration_from_start[neighbor] = global_duration
+                        last_edge[neighbor] = current_shortest
+                        print("Adding DFS for edge {} with duration {}\n".format(neighbor, global_duration))
+                    elif duration_from_start[neighbor] > global_duration:
+                        duration_from_start[neighbor] = global_duration
+                        last_edge[neighbor] = current_shortest
+                        print("Updating DFS for edge {} with duration {}\n".format(neighbor, global_duration))
+            print("Duration from start: {}\n".format(duration_from_start))
+            unvisited.remove(current_shortest)
+            visited.append(current_shortest)
+
+        if end not in duration_from_start:
+            return None
+        else:
+            current = end
+            path = [end]
+            while True:
+                current = last_edge[current]
+                path.append(current)
+                if current == start:
+                    break
+
+            return Result(path[::-1], duration_from_start[end])
+
 
 @dataclass(frozen=True)
 class Result:
     path: List[str]
     duration: int
-
 
     def __str__(self):
         stops = 0
@@ -86,5 +136,5 @@ class Result:
 
         if path_len >= 1:
             stops = path_len
-        
+
         return "Result: {} stops, {} minutes".format(stops, self.duration)
