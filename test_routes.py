@@ -1,5 +1,5 @@
 import unittest
-from routes import Routes, InvalidRouteError
+from routes import Routes, InvalidRouteError, InvalidInputFile
 
 
 class GraphInitializationTest(unittest.TestCase):
@@ -24,6 +24,10 @@ class GraphInitializationTest(unittest.TestCase):
             Routes.load_routes('test_csv_files/impossible_cycle.csv')
         with self.assertRaises(InvalidRouteError):
             Routes.load_routes('test_csv_files/impossible_unique_nodes.csv')
+    
+    def test_load_empty_csv(self):
+        with self.assertRaises(InvalidInputFile):
+            Routes.load_routes('test_csv_files/empty.csv')
 
 
 class ShortestPathTest(unittest.TestCase):

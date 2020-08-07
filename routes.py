@@ -16,6 +16,9 @@ class InvalidRouteError(Exception):
             message, line_idx, bad_data)
         super().__init__(self.message)
 
+class InvalidInputFile(Exception):
+    def __init__(self):
+        super().__init__("The CSV file is empty")
 
 # Perhaps this can be refactored out but it's easy immutability
 @dataclass(frozen=True)
@@ -27,9 +30,9 @@ class Route:
 
 @dataclass
 class Routes:
-    def __init__(self, routes_reader):
+    def __init__(self, route_reader):
         self.graph: RouteGraph = RouteGraph()
-        for idx, raw_route in enumerate(routes_reader):
+        for idx, raw_route in enumerate(route_reader):
             # Malformed CSV errors causing index range errors and invalid int literal erros will panic with the default trace
             src = raw_route[0].upper()
             dest = raw_route[1].upper()
@@ -38,6 +41,8 @@ class Routes:
 
             # Ideally these checks should be a part of Route and error handling/printing should have a more robust mechanism.
             # Here for now because of easy access to index and malformed data
+
+            
             if unique_nodes and duration != 0:
                 raise InvalidRouteError(
                     "Duration must be 0 if source and destination are the same.", idx+1, raw_route)
@@ -57,8 +62,12 @@ class Routes:
     def load_routes(filename: str = 'routes.csv') -> Routes:
         all_routes: Routes
         with open(filename, newline='') as routes:
-            reader = csv.reader(routes)
+            reader = csv.reader(routes)    
             all_routes = Routes(reader)
+
+        if not all_routes.graph.edges:
+            raise InvalidInputFile()
+
         return all_routes
 
 
@@ -73,12 +82,14 @@ class RouteGraph:
         self.durations[(r.src, r.dest)] = r.duration
 
     def shortest_path(self, start, end) -> Optional[Result]:
-        if start not in self.edges.keys():
+        unvisited = [*self.edges] # Nodes that are not 'starting stations' aren't included
+
+        if start not in unvisited: 
             return None
         if start == end:
             return Result([start], 0)
-        unvisited = [*self.edges]
-        visited = []
+
+        visited = [] 
         duration_from_start = {}
         duration_from_start[start] = 0
         last_edge = {}
