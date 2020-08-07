@@ -6,9 +6,9 @@ If no arguments are provided it will load routes from `routes.csv` at the root o
 
 # Notes
 
-    Naive implementation of shortest path algorithm. Multiple membership check involve list traversal. 
+Naive implementation of shortest path algorithm. Membership checks involve list traversal. 
 
-    No virtualization as no external libs were used. Considered using a python docker image but then that'd still have a prerequisite, i.e Docker.
+No virtualization as no external libs were used. Considered using a python docker image but then that'd still have a prerequisite, i.e Docker.
 
 # Tests
 
