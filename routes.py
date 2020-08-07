@@ -16,11 +16,14 @@ class InvalidRouteError(Exception):
             message, line_idx, bad_data)
         super().__init__(self.message)
 
+
 class InvalidInputFile(Exception):
     def __init__(self):
         super().__init__("The CSV file is empty")
 
 # Perhaps this can be refactored out but it's easy immutability
+
+
 @dataclass(frozen=True)
 class Route:
     src: str
@@ -42,7 +45,6 @@ class Routes:
             # Ideally these checks should be a part of Route and error handling/printing should have a more robust mechanism.
             # Here for now because of easy access to index and malformed data
 
-            
             if unique_nodes and duration != 0:
                 raise InvalidRouteError(
                     "Duration must be 0 if source and destination are the same.", idx+1, raw_route)
@@ -62,7 +64,7 @@ class Routes:
     def load_routes(filename: str = 'routes.csv') -> Routes:
         all_routes: Routes
         with open(filename, newline='') as routes:
-            reader = csv.reader(routes)    
+            reader = csv.reader(routes)
             all_routes = Routes(reader)
 
         if not all_routes.graph.edges:
@@ -82,14 +84,14 @@ class RouteGraph:
         self.durations[(r.src, r.dest)] = r.duration
 
     def shortest_path(self, start, end) -> Optional[Result]:
-        unvisited = [*self.edges] # Nodes that are not 'starting stations' aren't included
+        unvisited = [*self.edges]  # All nodes that can act as a starting point
 
-        if start not in unvisited: 
+        if start not in unvisited:
             return None
         if start == end:
             return Result([start], 0)
 
-        visited = [] 
+        visited = []  # All nodes that have been reached
         duration_from_start = {}
         duration_from_start[start] = 0
         last_edge = {}
@@ -128,6 +130,13 @@ class RouteGraph:
 
             return Result(path[::-1], duration_from_start[end])
 
+    def pretty_routes(self) -> str:
+        pretty = '\nFrom ---> To :  Duration\n'
+        for k, v in self.durations.items():
+            (src, dest) = k
+            pretty += "{}   --->   {}  :  {} minutes\n".format(src, dest, v)
+        return pretty
+
 
 @dataclass(frozen=True)
 class Result:
@@ -141,4 +150,4 @@ class Result:
         if path_len >= 1:
             stops = path_len
 
-        return "Result: {} stops, {} minutes".format(stops, self.duration)
+        return "Result:\n {} stops, {} minutes\nPath: {}\n".format(stops, self.duration, self.path)

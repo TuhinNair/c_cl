@@ -24,7 +24,7 @@ class GraphInitializationTest(unittest.TestCase):
             Routes.load_routes('test_csv_files/impossible_cycle.csv')
         with self.assertRaises(InvalidRouteError):
             Routes.load_routes('test_csv_files/impossible_unique_nodes.csv')
-    
+
     def test_load_empty_csv(self):
         with self.assertRaises(InvalidInputFile):
             Routes.load_routes('test_csv_files/empty.csv')
@@ -52,7 +52,7 @@ class ShortestPathTest(unittest.TestCase):
         routes = Routes.load_routes('test_csv_files/simple_path.csv')
         res = routes.graph.shortest_path('T', 'A')
         assert res is None
-    
+
     def test_competing_routes(self):
         routes = Routes.load_routes('test_csv_files/simple_path_1.csv')
         res = routes.graph.shortest_path('A', 'Z')
@@ -63,6 +63,7 @@ class ShortestPathTest(unittest.TestCase):
         routes = Routes.load_routes('test_csv_files/unreachable.csv')
         res = routes.graph.shortest_path('A', 'R')
         assert res is None
+
 
 if __name__ == '__main__':
     unittest.main()
